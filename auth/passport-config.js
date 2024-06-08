@@ -1,13 +1,13 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcryptjs');
-const User = require('../models');
+const User = require('../models/user');
 
 // Passport Local Strategy
 passport.use(
     new LocalStrategy(async(username, password, done) => {
         try {
-            const user = User.findOne({username: username});
+            const user = await User.findOne({username: username});
             if(!user) {
                 return done(null, false, {message: "Incorrect username"});
             }
@@ -36,3 +36,5 @@ passport.deserializeUser(async (id, done) => {
       done(err);
     };
 });
+
+module.exports = passport;
