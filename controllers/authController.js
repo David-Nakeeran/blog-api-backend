@@ -2,6 +2,8 @@ const User = require("../models/user");
 const asyncHandler = require('express-async-handler');
 const {body, validationResult} = require('express-validator');
 const bcrypt = require('bcryptjs');
+const generateToken = require('../auth/jwt-ultils');
+const passport = require('../auth/passport-config');
 
 // Handle signup Post
 exports.signupPost = [
@@ -58,7 +60,7 @@ asyncHandler(async(req, res, next) => {
             password: hashedPassword,
         })
         const savedUser = await user.save();
-        res.json({
+        res.status(200).res.json({
             status: "success",
             message: "User registered successfully",
         })
@@ -66,4 +68,53 @@ asyncHandler(async(req, res, next) => {
         return next(err)
     }
 })
+];
+
+// Handle login POST
+exports.loginPost = [
+    // Validate and sanitise fields
+    body("username")
+        .isEmail()
+        .escape()
+        .withMessage("Username must be entered")
+        .normalizeEmail(),
+    body("password")
+        .trim()
+        .isLength({min: 1})
+        .withMessage("Password must be entered"),
+    asyncHandler(async(req, res, next) => {
+        const errors = validationResult(req);
+        
+        if(!errors.isEmpty()) {
+            return res.status(400).json({
+                status: "error",
+                message: "Validation failed",
+                error: errors.array(),
+            })
+        }
+        
+        passport.authenticate('local', (err, user, info) => {
+            if(err) {
+                return next(err)
+            }
+            if(!user) {
+                return res.status(401).json({
+                    status: "error",
+                    message: "Authentication failed"
+                })
+            }
+            
+            try {
+                const token = generateToken(user);
+                return res.status(200).json({
+                status: "success",
+                message: "Authentication successful",
+                token: token,
+                })
+            }   catch(err) {
+                next(err);
+            }
+            
+        })(req, res, next);
+    }),
 ];
