@@ -1,24 +1,43 @@
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
+const {verifyToken, extractToken} = require('./jwt-ultils');
 
-const SECRET_KEY = process.env.TOKEN_SECRET;
+async function authenticateToken(req) {
+    try {
+        const token = extractToken(req);
+        const decoded = await verifyToken(token);
 
-function authenticateToken(req, res, next) {
-    const bearerHeader = req.headers['authorization'];
-    console.log(bearerHeader);
-    const token = bearerHeader.split(' ')[1];
-
-    if(!token) {
-        return res.sendStatus(401);
-    }
-
-    jwt.verify(token, SECRET_KEY, (err, decoded) => {
-        if(err) {
-            return res.sendStatus(403);
-        }
         req.user = decoded;
         next();
-    })
-}
+    }   catch(err) {
+            res.status(401).json({
+                status: 'error',
+                message: err.message
+            })
+            
+    }
+};
 
-module.exports = authenticateToken;
+async function authenticateAdminToken(req, res, next) {
+    try {
+        const token = extractToken(req);
+        const decoded = await verifyToken(token, process.env.TOKEN_SECRET);
+
+        if(!decoded.admin) {
+            return res.status(403).json({
+                status: 'error',
+                message: 'Access denied. Admin only.'
+            });
+        }
+
+        req.user = decoded;
+        next();
+
+    }   catch(err) {
+            res.status(401).json({
+                status: 'error',
+                message: err.message
+            })
+            
+    }
+};
+
+module.exports = {authenticateToken, authenticateAdminToken};
