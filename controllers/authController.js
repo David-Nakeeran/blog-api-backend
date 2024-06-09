@@ -2,7 +2,7 @@ const User = require("../models/user");
 const asyncHandler = require('express-async-handler');
 const {body, validationResult} = require('express-validator');
 const bcrypt = require('bcryptjs');
-const generateToken = require('../auth/jwt-ultils');
+const {generateToken} = require('../auth/jwt-ultils');
 const passport = require('../auth/passport-config');
 
 // Handle signup Post
