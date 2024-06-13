@@ -13,4 +13,9 @@ CommentSchema.virtual("url").get(function() {
     return `/posts/${this._id}`;
 });
 
+// Virtual for author fullname
+// CommentSchema.virtual("fullName").get(function() {
+//     return `${this.firstName} ${this.surname}`
+// })
+
 module.exports = mongoose.model("Comment", CommentSchema);
