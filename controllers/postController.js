@@ -1,17 +1,24 @@
 const Post = require('../models/post');
+const Comment = require('../models/comment');
 const asyncHandler = require('express-async-handler');
 const {body, validationResult} = require('express-validator');
 
 // Display all POSTS 
 exports.postList = asyncHandler(async(req, res, next) => {
-    const allPosts = await Post.find({}, "comment")
-    .populate("comment")
-    .exec()
+    try {
+        // To add = find{isPublished: true}
+        const allPosts = await Post.find({}, "author")
+            .populate("author")
+            .sort({createdAt: -1})
+            .exec()
 
-    res.status(200).json({
+        res.status(200).json({
         status: "success",
         posts: allPosts
     })
+    }   catch(err) {
+            return next(err)
+    }
 })
 
 // Handle article POST
@@ -46,7 +53,7 @@ exports.postCreate = [
             const post = new Post({
                 title: req.body.title,
                 text: req.body.text,
-                author: req.user._id,
+                author: req.user.id,
             })
             const savedPost = await post.save();
 
@@ -61,4 +68,33 @@ exports.postCreate = [
     })
 ];
 
+// Display detail page for specific Post
+exports.postDetail = asyncHandler(async(req, res, next) => {
+    try {
+        const post = await Post.findById(req.params.id).populate({
+            path: 'author',
+            select: "firstName surname fullName"
+        }).exec();
 
+        if(!post) {
+        return next(err)
+    }
+
+        const comments = await Comment.find({post: post._id})
+            .populate({
+                path: 'author',
+                select: 'firstName surname fullName'
+            })
+            .sort({createdAt: 1})
+            .exec();
+        
+        res.status(200).json({
+                status: "success",
+                post: post,
+                comments: comments
+        })
+
+    }   catch(err) {
+        return next(err)
+    }
+})
