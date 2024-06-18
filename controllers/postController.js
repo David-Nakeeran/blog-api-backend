@@ -41,7 +41,10 @@ exports.postList = asyncHandler(async(req, res, next) => {
 exports.postAdminList = asyncHandler(async(req, res, next) => {
     
     const allPosts = await Post.find({}, "author")
-        .populate("author")
+        .populate({
+            path: 'author',
+            select: 'firstName surname fullName'
+        })
         .sort({createdAt: -1})
         .exec()
 
@@ -139,9 +142,7 @@ exports.postDetail = asyncHandler(async(req, res, next) => {
 // Delete specific post
 exports.postAdminDelete = asyncHandler(async(req, res, next) => {
     // Find post to ensure it exists
-    const post = await Post.findById(req.params.id)
-        .populate('author')
-        .exec()
+    const post = await Post.findById(req.params.id);
 
     if(!post) {
         return res.status(404).json({
