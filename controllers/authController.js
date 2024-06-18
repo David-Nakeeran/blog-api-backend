@@ -60,7 +60,7 @@ asyncHandler(async(req, res, next) => {
             password: hashedPassword,
         })
         const savedUser = await user.save();
-        res.status(200).res.json({
+        res.status(200).json({
             status: "success",
             message: "User registered successfully",
         })
