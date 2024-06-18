@@ -1,6 +1,6 @@
 const {verifyToken, extractToken} = require('./jwt-ultils');
 
-async function authenticateToken(req) {
+async function authenticateToken(req, res, next) {
     try {
         const token = extractToken(req);
         const decoded = await verifyToken(token);
