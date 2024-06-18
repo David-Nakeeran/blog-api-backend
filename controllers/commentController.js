@@ -24,16 +24,14 @@ exports.commentCreate = [
                 error: errors.array(),
             });
         }
-
-        try {
-            // Create a Comment object with escaped and trimmed data
-            console.log(req.user.id);
-
             const comment = new Comment({
                 text: req.body.text,
                 author: req.user.id,
                 post: req.params.id
             })
+
+            // Need error handling function
+
             const savedComment = await comment.save();
 
             return res.status(201).json({
@@ -41,8 +39,59 @@ exports.commentCreate = [
                 message: "Comment created successfully",
                 comment: savedComment,
             })
-        }   catch(err) {
-                return next(err)
-        }
+
     })
 ];
+
+
+// Handle user deleting own comment
+exports.commentUserDelete = asyncHandler(async(req, res, next) => {
+    const comment = await Comment.findById(req.params.commentId);
+    
+    // Replace with error handling function
+    if(!comment) {
+        return res.status(404).json({
+            status: 'error',
+            message: "comment not found"
+        })
+    }
+    
+    if(comment.author.toString() !== req.user.id) {
+        return res.status(403).json({
+            status: "error",
+            message: "You can only delete your own comments"
+        })
+    }
+
+    await Comment.findByIdAndDelete(req.params.commentId);
+
+    res.status(200).json({
+        status: 'success',
+        message: 'Comment deleted successfully'
+    })
+})
+
+exports.commentAdminDelete = asyncHandler(async(req, res, next) => {
+    if(!req.user.admin) {
+        return res.status(403).json({
+            status: 'error',
+            message: 'Access denied. Admin only'
+        })
+    }
+
+    const comment = await Comment.findByIdAndDelete(req.params.commentId);
+
+    // Replace with error handling function
+    if(!comment) {
+        return res.status(404).json({
+            status: 'error',
+            message: 'Comment not found'
+        })
+    }
+
+    res.status(200).json({
+        status: 'success',
+        messgae: 'Comment deleted successfully'
+    })
+
+})
