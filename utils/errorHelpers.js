@@ -1,10 +1,10 @@
 
-function createError(errorMessage, statusCode = 500) {
-    const err = new Error(errorMessage);
-    err.status = statusCode;
-    return err;
+function createCustomError(errorMessage, statusCode = 500) {
+    const error = new Error(errorMessage);
+    error.status = statusCode;
+    return error;
 };
 
 module.exports = {
-    createError,
+    createCustomError,
 };
