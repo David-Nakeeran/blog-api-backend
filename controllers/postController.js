@@ -2,14 +2,16 @@ const Post = require('../models/post');
 const Comment = require('../models/comment');
 const asyncHandler = require('express-async-handler');
 const {body, validationResult} = require('express-validator');
+const {createCustomError} = require('../utils/errorHelpers');
 
 /* To DO
+
+1b. Replace current error handling we new error handling function
 1. Change all reference of .populate('author') with - .populate({
                     path: 'author',
                     select: 'firstName surname fullName'
             })
 2. Remove try catch blocks
-3. Create helper function/ middleware for repetitive error handling
 */
 
 // Display all POSTS
@@ -24,9 +26,7 @@ exports.postList = asyncHandler(async(req, res, next) => {
             .exec()
     
     if(!allPublishedPosts) {
-        const err = new Error('Posts not found');
-        err.status = 404;
-        return next(err)
+        return next(createCustomError('Posts not found', 404));
     }
 
     res.status(200).json({
@@ -49,9 +49,7 @@ exports.postAdminList = asyncHandler(async(req, res, next) => {
         .exec()
 
     if(!allPosts) {
-        const err = new Error('Posts not found');
-        err.status = 404;
-        return next(err)
+        return next(createCustomError('Posts not found', 404));
     }
         
     res.status(200).json({
@@ -87,14 +85,14 @@ exports.postCreate = [
             });
         }
 
-        try {
             // Create a Post object with escaped and trimmed data
-            console.log(req.user); 
+            
             const post = new Post({
                 title: req.body.title,
                 text: req.body.text,
                 author: req.user.id,
-            })
+            });
+
             const savedPost = await post.save();
 
             return res.status(201).json({
@@ -102,22 +100,19 @@ exports.postCreate = [
                 message: "Post created successfully",
                 post: savedPost,
             })
-        }   catch(err) {
-                return next(err)
-        }
     })
 ];
 
 // Display detail page for specific Post
 exports.postDetail = asyncHandler(async(req, res, next) => {
-    try {
+    
         const post = await Post.findById(req.params.id).populate({
             path: 'author',
             select: "firstName surname fullName"
         }).exec();
 
         if(!post) {
-        return next(err)
+            return next(createCustomError('Post not found', 404));
     }
 
         const comments = await Comment.find({post: post._id})
@@ -133,10 +128,6 @@ exports.postDetail = asyncHandler(async(req, res, next) => {
                 post: post,
                 comments: comments
         })
-
-    }   catch(err) {
-        return next(err)
-    }
 })
 
 // Delete specific post
@@ -145,10 +136,7 @@ exports.postAdminDelete = asyncHandler(async(req, res, next) => {
     const post = await Post.findById(req.params.id);
 
     if(!post) {
-        return res.status(404).json({
-            status: "Error",
-            message: "Post not found"
-        });
+        return next(createCustomError('Posts not found', 404));
     }
 
     // Delete all comments associated with the specific post
@@ -169,9 +157,7 @@ exports.postAdminPublish = asyncHandler(async(req, res, next) => {
     const post = await Post.findByIdAndUpdate(req.params.id, {isPublished: req.body.isPublished}, {new: true})
 
     if(!post) {
-        const err = new Error("Post not found");
-        err.status = 404;
-        return next(err);
+        return next(createCustomError("Post not found", statusCode = 404));
     }
 
     res.status(200).json({
@@ -212,9 +198,7 @@ exports.postAdminUpdatePost = [
         const post = await Post.findById(req.params.id);
 
         if(!post) {
-            const err = new Error('Post not found');
-            err.status = 404;
-            return next(err);
+            return next(createCustomError('Posts not found', 404));
         }
 
             // Post update
@@ -237,9 +221,7 @@ exports.postAdminUpdatePost = [
                 .exec();
 
             if(!updatedPost) {
-                const err = new Error('Post not found');
-                err.status = 404;
-                return next(err)
+                return next(createCustomError('Posts not found', 404));
             }
 
             return res.status(200).json({

@@ -4,6 +4,7 @@ const {body, validationResult} = require('express-validator');
 const bcrypt = require('bcryptjs');
 const {generateToken} = require('../auth/jwt-ultils');
 const passport = require('../auth/passport-config');
+const {createCustomError} = require('../utils/errorHelpers');
 
 // Handle signup Post
 exports.signupPost = [
@@ -50,7 +51,6 @@ asyncHandler(async(req, res, next) => {
         });
     }
 
-    try {
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
    
         const user = new User({
@@ -64,9 +64,6 @@ asyncHandler(async(req, res, next) => {
             status: "success",
             message: "User registered successfully",
         })
-    }   catch(err) {
-        return next(err)
-    }
 })
 ];
 
@@ -98,10 +95,7 @@ exports.loginPost = [
                 return next(err)
             }
             if(!user) {
-                return res.status(401).json({
-                    status: "error",
-                    message: "Authentication failed"
-                })
+                return next(createCustomError('Authentication failed', 401));
             }
             
             try {

@@ -2,6 +2,7 @@ const Post = require('../models/post');
 const Comment = require('../models/comment');
 const asyncHandler = require('express-async-handler');
 const {body, validationResult} = require('express-validator');
+const {createCustomError} = require('../utils/errorHelpers');
 
 
 // Handle comment POST
@@ -50,10 +51,7 @@ exports.commentUserDelete = asyncHandler(async(req, res, next) => {
     
     // Replace with error handling function
     if(!comment) {
-        return res.status(404).json({
-            status: 'error',
-            message: "comment not found"
-        })
+        return next(createCustomError('Comment not found', 404));
     }
     
     if(comment.author.toString() !== req.user.id) {
@@ -72,21 +70,11 @@ exports.commentUserDelete = asyncHandler(async(req, res, next) => {
 })
 
 exports.commentAdminDelete = asyncHandler(async(req, res, next) => {
-    if(!req.user.admin) {
-        return res.status(403).json({
-            status: 'error',
-            message: 'Access denied. Admin only'
-        })
-    }
-
     const comment = await Comment.findByIdAndDelete(req.params.commentId);
 
     // Replace with error handling function
     if(!comment) {
-        return res.status(404).json({
-            status: 'error',
-            message: 'Comment not found'
-        })
+        return next(createCustomError('Comment not found', 404));
     }
 
     res.status(200).json({
