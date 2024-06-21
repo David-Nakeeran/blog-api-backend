@@ -17,11 +17,11 @@ const app = express();
 mongoose.set("strictQuery", false);
 const mongoDB = process.env.MONGODB_URI || process.env.DEV_DB;
 
-async function main() {
+const main = async function() {
   await mongoose.connect(mongoDB);
 };
 
-async function connectToMongoDB() {
+const connectToMongoDB = async function() {
   try {
     await main();
   } catch(error) {
@@ -53,7 +53,7 @@ app.use(function(req, res, next) {
 // error handler
 app.use(function(err, req, res, next) {
   res.status(err.status || 500);
-
+  // Checks if in dev mode
   if(req.app.get('env') === 'development') {
     res.json({
       message: err.message,
