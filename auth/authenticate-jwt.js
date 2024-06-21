@@ -1,6 +1,7 @@
 const {verifyToken, extractToken} = require('./jwt-ultils');
+const {createCustomError} = require('../utils/errorHelpers')
 
-async function authenticateToken(req, res, next) {
+const authenticateToken = async function(req, res, next) {
     try {
         const token = extractToken(req);
         const decoded = await verifyToken(token);
@@ -8,35 +9,24 @@ async function authenticateToken(req, res, next) {
         req.user = decoded;
         next();
     }   catch(err) {
-            res.status(401).json({
-                status: 'error',
-                message: err.message
-            })
-            
+            next(createCustomError('Authentication failed', 401))  
     }
 };
 
-async function authenticateAdminToken(req, res, next) {
+const authenticateAdminToken = async function(req, res, next) {
     try {
         const token = extractToken(req);
         const decoded = await verifyToken(token, process.env.TOKEN_SECRET);
 
         if(!decoded.admin) {
-            return res.status(403).json({
-                status: 'error',
-                message: 'Access denied. Admin only.'
-            });
+            return next(createCustomError('Access denied. Admin only', 403))  
         }
 
         req.user = decoded;
         next();
 
     }   catch(err) {
-            res.status(401).json({
-                status: 'error',
-                message: err.message
-            })
-            
+            next(next(createCustomError('Authentication failed', 401))  )    
     }
 };
 
