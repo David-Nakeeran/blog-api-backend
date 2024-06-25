@@ -6,7 +6,7 @@ const UserSchema = new Schema({
     surname: {type: String, required: true, maxLength: 100},
     username: {type: String, required: true, unique: true},
     password: {type: String, required: true},
-    admin: {type: Boolean, default: false},
+    admin: {type: Boolean, default:}
 })
 
 // Full name

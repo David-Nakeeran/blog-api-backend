@@ -90,7 +90,7 @@ exports.loginPost = [
             })
         }
         
-        passport.authenticate('local', (err, user, info) => {
+        passport.authenticate('local', async(err, user, info) => {
             if(err) {
                 return next(err)
             }
@@ -100,6 +100,7 @@ exports.loginPost = [
             
             try {
                 const token = generateToken(user);
+
                 return res.status(200).json({
                 status: "success",
                 message: "Authentication successful",
@@ -112,3 +113,11 @@ exports.loginPost = [
         })(req, res, next);
     }),
 ];
+
+exports.logout = asyncHandler(async(req, res, next) => {
+
+    res.status(200).json({
+        message: 'Logged out successfully'
+    })
+
+})
