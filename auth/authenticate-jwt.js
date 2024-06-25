@@ -1,16 +1,19 @@
-const {verifyToken, extractToken} = require('./jwt-ultils');
+const {verifyToken, extractToken, generateToken} = require('./jwt-ultils');
 const {createCustomError} = require('../utils/errorHelpers')
 
 const authenticateToken = async function(req, res, next) {
     try {
         const token = extractToken(req);
-        const decoded = await verifyToken(token);
+        const decoded = await verifyToken(token, process.env.TOKEN_SECRET);
 
         req.user = decoded;
         next();
+
     }   catch(err) {
-            next(createCustomError('Authentication failed', 401))  
+            next(next(createCustomError('Authentication failed', 401))  )    
     }
+             
+    
 };
 
 const authenticateAdminToken = async function(req, res, next) {
